@@ -19,7 +19,9 @@ public:
     void draw() const;
     bool isClicked(Vector2 mousePos) const;
     void reset(int screenWidth, int screenHeight);
+
     int getScore() const;
+    Vector2 getPosition() const;
 };
 
 #endif

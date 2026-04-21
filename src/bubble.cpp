@@ -1,11 +1,10 @@
-#include "bubble.h"
-#include <cmath>
+#include "Bubble.h"
 
 Bubble::Bubble() {
     position = {100.0f, 100.0f};
     velocity = {2.0f, 2.0f};
     radius = 30.0f;
-    color = SKYBLUE;
+    color = (Color){150, 200, 235, 220};
     scoreValue = 10;
 }
 
@@ -21,32 +20,54 @@ void Bubble::update(int screenWidth, int screenHeight) {
     position.x += velocity.x;
     position.y += velocity.y;
 
-    // 撞牆反彈
     if (position.x - radius <= 0 || position.x + radius >= screenWidth) {
         velocity.x *= -1;
     }
 
-    if (position.y - radius <= 80 || position.y + radius >= screenHeight) {
+    if (position.y - radius <= 100 || position.y + radius >= screenHeight) {
         velocity.y *= -1;
     }
 }
 
 void Bubble::draw() const {
-    // 外圈柔和光暈
-    DrawCircleV(position, radius + 6, Fade(WHITE, 0.15f));
+    // 最外層淡淡光暈
+    DrawCircleV(position, radius + 10, Fade(WHITE, 0.06f));
+    DrawCircleV(position, radius + 6, Fade(WHITE, 0.10f));
 
-    // 主泡泡
+    // 主體泡泡
     DrawCircleV(position, radius, color);
 
-    // 外框
-    DrawCircleLines((int)position.x, (int)position.y, radius, Fade(WHITE, 0.8f));
+    // 內層柔和疊色，讓泡泡更有層次
+    DrawCircleV(
+        { position.x - radius * 0.08f, position.y - radius * 0.08f },
+        radius * 0.82f,
+        Fade(WHITE, 0.08f)
+    );
 
-    // 高光，讓泡泡看起來比較立體
-    Vector2 highlight1 = { position.x - radius * 0.35f, position.y - radius * 0.35f };
-    Vector2 highlight2 = { position.x - radius * 0.15f, position.y - radius * 0.15f };
+    // 外框，改淡一點
+    DrawCircleLines((int)position.x, (int)position.y, radius, Fade(WHITE, 0.65f));
 
-    DrawCircleV(highlight1, radius * 0.22f, Fade(WHITE, 0.55f));
-    DrawCircleV(highlight2, radius * 0.10f, Fade(WHITE, 0.80f));
+    // 左上大高光
+    DrawCircleV(
+        { position.x - radius * 0.32f, position.y - radius * 0.35f },
+        radius * 0.24f,
+        Fade(WHITE, 0.42f)
+    );
+
+    // 左上小高光
+    DrawCircleV(
+        { position.x - radius * 0.12f, position.y - radius * 0.15f },
+        radius * 0.10f,
+        Fade(WHITE, 0.75f)
+    );
+
+    // 右下淡反光
+    DrawCircleLines(
+        (int)(position.x + radius * 0.15f),
+        (int)(position.y + radius * 0.18f),
+        radius * 0.28f,
+        Fade(WHITE, 0.18f)
+    );
 }
 
 bool Bubble::isClicked(Vector2 mousePos) const {
@@ -56,25 +77,34 @@ bool Bubble::isClicked(Vector2 mousePos) const {
 void Bubble::reset(int screenWidth, int screenHeight) {
     radius = (float)GetRandomValue(25, 55);
 
-    position.x = (float)GetRandomValue((int)radius, screenWidth - (int)radius);
-    position.y = (float)GetRandomValue((int)radius + 90, screenHeight - (int)radius);
+    position.x = (float)GetRandomValue((int)radius + 20, screenWidth - (int)radius - 20);
+    position.y = (float)GetRandomValue((int)radius + 120, screenHeight - (int)radius - 20);
 
     velocity.x = (float)GetRandomValue(-3, 3);
     velocity.y = (float)GetRandomValue(-3, 3);
 
-    // 避免速度變成 0
     if (velocity.x == 0) velocity.x = 2.0f;
     if (velocity.y == 0) velocity.y = -2.0f;
 
-    // 小泡泡分數比較高
     scoreValue = 70 - (int)radius;
 
+    // 降低飽和度：改成比較柔和的馬卡龍色
     Color colors[6] = {
-        SKYBLUE, PINK, GREEN, ORANGE, PURPLE, GOLD
+        (Color){149, 204, 255, 220}, // soft blue
+        (Color){255, 182, 193, 220}, // soft pink
+        (Color){170, 220, 190, 220}, // soft green
+        (Color){255, 210, 170, 220}, // soft orange
+        (Color){205, 180, 255, 220}, // soft purple
+        (Color){255, 225, 150, 220}  // soft gold
     };
+
     color = colors[GetRandomValue(0, 5)];
 }
 
 int Bubble::getScore() const {
     return scoreValue;
+}
+
+Vector2 Bubble::getPosition() const {
+    return position;
 }
